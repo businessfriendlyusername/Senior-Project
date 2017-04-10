@@ -1,0 +1,1 @@
+secret = "host='localhost' dbname='postgres' user='postgres' password='skoter123'"
