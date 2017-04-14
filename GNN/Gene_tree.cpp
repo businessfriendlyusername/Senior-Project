@@ -4,7 +4,13 @@ Gene_tree::Gene_tree()
 
 }
 
-Gene_tree::Gene_tree(vector<Gene> genes)
+Gene_tree::~Gene_tree()
+{
+	for (map<char, Gene_tree*>::iterator i = children.begin(); i != children.end(); i++)
+		delete i->second;
+}
+
+void Gene_tree::build(vector<Gene> genes)
 {
 	gene_index = -1;
 	for (int i = 0; i < genes.size(); i++)
@@ -14,14 +20,15 @@ Gene_tree::Gene_tree(vector<Gene> genes)
 		{
 			if (cur->children.count(genes[i].gene_code[j]) == 0)
 			{
-				Gene_tree* temp = new Gene_tree;
+				Gene_tree* temp = new Gene_tree();
 				cur->children.insert(make_pair(genes[i].gene_code[j], temp));
+				
 				cur = temp;
 			}
 			else
 				cur = cur->children.at(genes[i].gene_code[j]);
 		}
-		if(cur != this && cur->gene_index == -2)
+		if(cur->gene_index == -2)
 			cur->gene_index = i;
 	}
 }

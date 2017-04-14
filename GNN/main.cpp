@@ -16,25 +16,26 @@ int main()
 	alpha.insert('b');
 	alpha.insert('c');
 	alpha.insert('d');
+	
 	c.set_genes(Chromosome::rand_genes(10, 3.0, 2.0, 5, 2, 40, 10, alpha));
+	c.gen_codes();
 	//c.printGenes();
 	//c.printadj();
 	//c.gen_codes();
 	//c.printCodes();
-	Gene_tree g(c.genes);
-	int count = 0;
+	c.validate_genes();
 
-	for (int i = 0; i < c.genes.size(); i++)
-		cout << c.genes[i].gene_code << endl;
-	int var;
-	for (int i = 0; i < c.genes.size(); i++)
-	{
-		for (int j = 0; j < c.genes[i].gene_nodes.size(); j++)
-		{
-			cout << c.genes[i].gene_nodes[j] << endl;
-			var = g.decode(c.genes[i].gene_nodes[j]);
-			cout << var;
-			system("pause");
-		}
-	}
+	//for (int i = 0; i < c.genes.size(); i++)
+	//	cout << c.genes[i].gene_code << endl;
+	//int var;
+	//for (int i = 0; i < c.genes.size(); i++)
+	//{
+	//	for (int j = 0; j < c.genes[i].gene_nodes.size(); j++)
+	//	{
+	//		cout << c.genes[i].gene_nodes[j] << endl;
+	//		var = g.decode(c.genes[i].gene_nodes[j]);
+	//		cout << var;
+	//		system("pause");
+	//	}
+	//}
 }

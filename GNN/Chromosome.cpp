@@ -128,6 +128,7 @@ void Chromosome::gen_codes()
 	{
 		gene_codes.push_back(genes[dist(gen)].gene_code);
 	}
+	resolve_genes();
 }
 
 const vector<Gene> Chromosome::rand_genes(int num_genes, double weights_mean, double weights_dev, int nodes_mean, int nodes_dev, float mutation_mean, float mutation_dev, set<char> alpha)
@@ -180,9 +181,9 @@ const vector<Gene> Chromosome::rand_genes(int num_genes, double weights_mean, do
 		g.structure_mutation_rate = mutation_distribution(gen);
 		g.mutation_rates_mutation_rate = mutation_distribution(gen);
 		if (g.structure_mutation_rate > 1.0f)
-			g.structure_mutation_rate = 1.0f;
+		g.structure_mutation_rate = 1.0f;
 		if (g.mutation_rates_mutation_rate > 1.0f)
-			g.mutation_rates_mutation_rate = 1.0f;
+		g.mutation_rates_mutation_rate = 1.0f;
 		vector<float> nodes_code_rates;
 		for (int j = 0; j < gene_size; j++)
 		{
@@ -190,8 +191,8 @@ const vector<Gene> Chromosome::rand_genes(int num_genes, double weights_mean, do
 		}
 		g.nodes_code_mutation_rate = nodes_code_rates;
 		genes.push_back(g);
-	}
-	return genes;
+			}
+			return genes;
 }
 
 
@@ -221,8 +222,124 @@ void Chromosome::printCodes()
 
 void Chromosome::validate_genes()
 {
+	vector<set<int>> contains;
 	for (int i = 0; i < genes.size(); i++)
 	{
+		set<int> s;
+		for (auto node : genes[i].gene_nodes)
+		{
+			int x = resolver.decode(node);
+			if(x != -1)
+				s.insert(x);
+		}
+		
+		contains.push_back(s);
+	}
+	contains = make_dag(contains);//prune edges to make graph a DAG
+}
 
+
+class compare//used in make_dag() priority queue
+{
+public:
+	bool operator() (pair<int, set<int>>& left, pair<int, set<int>>& right)
+	{
+		return (left.second.size() < right.second.size());
+	}
+};
+
+
+vector<set<int>> Chromosome::make_dag(vector<set<int>> graph)
+{
+	gene_includes.clear();
+	vector<bool> complete;//indicies submatricies have been completely resolved if bool == true
+	for (int i = 0; i < graph.size(); i++)
+	{
+		vector<int> temp;
+		temp.reserve(graph.size());
+		gene_includes.push_back(temp);
+		complete.push_back(false);
+	}
+	priority_queue<pair<int, set<int>>, vector<pair<int, set<int>>>, compare> pq;
+
+
+	for (int i = 0; i < graph.size(); i++)
+	{
+		pq.push(make_pair(i, graph[i]));
+		vector<int> m;
+		for (auto source : graph[i])
+		{
+			m.push_back(0);
+		}
+		gene_includes[i] = m;
+	}
+	vector<bool> included;
+	for (int i = 0; i < graph.size(); i++)
+		included.push_back(false);
+	pair<int, set<int>> vertex = pq.top();
+	pq.pop();
+	vertex.second.clear();//at least one vertex must be empty so we use the vertex with the fewest edges
+	pq.push(vertex);
+	while (!pq.empty())
+	{
+		for (int i = 0; i < graph.size(); i++)
+			included[i] = false;
+		vertex = pq.top();
+		pq.pop();
+		included[vertex.first] = true;
+		if (vertex.second.size() == 0)
+		{
+			complete[vertex.first] = true;
+			continue;
+		}
+
+		bool comp = true;
+		
+		for (set<int>::iterator i = vertex.second.begin(); i != vertex.second.end(); i++)
+		{
+			int edge = *i;
+			if (complete[edge])//the outgoing edge has already been completely expanded and is free of cycles
+			{
+				for (auto it : graph[edge])
+				{
+					included[it] = true;
+					gene_includes[vertex.first][it]++;
+				}
+			}
+			else if (included[edge])//cycle detected, matrix includes itself
+			{
+				comp = false;
+				vertex.second.erase(edge);
+			}
+			else//no cycle detected and the outgoing edge has not been expanded yet
+			{
+				comp = false;
+				vertex.second.insert(edge);
+			}
+			included[edge] = true;
+		}
+		if (comp)//if comp is true then all outgoing edges from the vertex are complete, therefore this vertex is complete
+		{
+			complete[vertex.first] = true;
+			graph[vertex.first].clear();
+			for (int e = 0; e < gene_includes[vertex.first].size(); e++)
+			{
+				if (gene_includes[vertex.first][e] > 0)
+					graph[vertex.first].insert(e);
+			}
+		}
+		else
+			pq.push(vertex);
+	}
+	return graph;
+}
+
+void Chromosome::resolve_genes()
+{
+	resolver.build(genes);
+	for (int i = 0; i < gene_codes.size(); i++)
+	{
+		int x = resolver.decode(gene_codes[i]);
+		gene_indicies.push_back(x);
 	}
 }

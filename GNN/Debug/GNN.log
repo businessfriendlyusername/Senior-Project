@@ -1,11 +1,17 @@
 ﻿  Chromosome.cpp
-e:\ssd_docs\my projects\ai_trader\gnn\gnn\chromosome.cpp(23): warning C4018: '<': signed/unsigned mismatch
-e:\ssd_docs\my projects\ai_trader\gnn\gnn\chromosome.cpp(25): warning C4018: '<': signed/unsigned mismatch
-e:\ssd_docs\my projects\ai_trader\gnn\gnn\chromosome.cpp(40): warning C4018: '<': signed/unsigned mismatch
-e:\ssd_docs\my projects\ai_trader\gnn\gnn\chromosome.cpp(42): warning C4018: '<': signed/unsigned mismatch
-e:\ssd_docs\my projects\ai_trader\gnn\gnn\chromosome.cpp(127): warning C4018: '<': signed/unsigned mismatch
-e:\ssd_docs\my projects\ai_trader\gnn\gnn\chromosome.cpp(136): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-e:\ssd_docs\my projects\ai_trader\gnn\gnn\chromosome.cpp(224): warning C4018: '<': signed/unsigned mismatch
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(23): warning C4018: '<': signed/unsigned mismatch
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(25): warning C4018: '<': signed/unsigned mismatch
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(40): warning C4018: '<': signed/unsigned mismatch
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(42): warning C4018: '<': signed/unsigned mismatch
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(127): warning C4018: '<': signed/unsigned mismatch
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(137): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(226): warning C4018: '<': signed/unsigned mismatch
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(256): warning C4018: '<': signed/unsigned mismatch
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(266): warning C4018: '<': signed/unsigned mismatch
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(277): warning C4018: '<': signed/unsigned mismatch
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(285): warning C4018: '<': signed/unsigned mismatch
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(325): warning C4018: '<': signed/unsigned mismatch
+c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(340): warning C4018: '<': signed/unsigned mismatch
 c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\random(3790): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\random(3725): note: see reference to function template instantiation 'float std::normal_distribution<float>::_Eval<_Engine>(_Engine &,const std::normal_distribution<float>::param_type &,bool)' being compiled
           with
@@ -17,17 +23,17 @@ c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.1
           [
               _Engine=std::default_random_engine
           ]
-  e:\ssd_docs\my projects\ai_trader\gnn\gnn\chromosome.cpp(180): note: see reference to function template instantiation 'float std::normal_distribution<float>::operator ()<std::default_random_engine>(_Engine &)' being compiled
+  c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(181): note: see reference to function template instantiation 'float std::normal_distribution<float>::operator ()<std::default_random_engine>(_Engine &)' being compiled
           with
           [
               _Engine=std::default_random_engine
           ]
-  e:\ssd_docs\my projects\ai_trader\gnn\gnn\chromosome.cpp(180): note: see reference to function template instantiation 'float std::normal_distribution<float>::operator ()<std::default_random_engine>(_Engine &)' being compiled
+  c:\users\belvisoft\documents\github\senior-project\gnn\chromosome.cpp(181): note: see reference to function template instantiation 'float std::normal_distribution<float>::operator ()<std::default_random_engine>(_Engine &)' being compiled
           with
           [
               _Engine=std::default_random_engine
           ]
 c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\random(3793): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 belvis.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
-  GNN.vcxproj -> E:\ssd_docs\My projects\AI_trader\GNN\Debug\GNN.exe
-  GNN.vcxproj -> E:\ssd_docs\My projects\AI_trader\GNN\Debug\GNN.pdb (Partial PDB)
+  GNN.vcxproj -> C:\Users\Belvisoft\Documents\GitHub\Senior-Project\Debug\GNN.exe
+  GNN.vcxproj -> C:\Users\Belvisoft\Documents\GitHub\Senior-Project\Debug\GNN.pdb (Partial PDB)
