@@ -17,14 +17,14 @@ int main()
 	alpha.insert('c');
 	alpha.insert('d');
 	
-	c.set_genes(Chromosome::rand_genes(10, 3.0, 2.0, 5, 2, 40, 10, alpha));
+	c.set_genes(Chromosome::rand_genes(5, 3.0, 2.0, 5, 2, 40, 10, alpha));
 	c.gen_codes();
-	//c.printGenes();
+	c.printGenes();
 	//c.printadj();
 	//c.gen_codes();
 	//c.printCodes();
 	c.validate_genes();
-
+	c.printGenes();
 	//for (int i = 0; i < c.genes.size(); i++)
 	//	cout << c.genes[i].gene_code << endl;
 	//int var;

@@ -9,7 +9,8 @@
 #include <set>
 #include "Network.h"
 #include "Gene_tree.h"
-#include <queue>
+#include <algorithm>
+#include <iterator>
 using namespace std;
 
 class Chromosome
@@ -26,11 +27,6 @@ private:
 	
 	Gene_tree resolver;//resolves gene codes to their indicies in the gene vector
 	vector<set<int>> make_dag(vector<set<int>>);//used by validate_genes
-
-
-	vector<vector<int>> gene_includes;//data structure used for dynamic programming in make_dag(), also used in crossover
-	//the index of the vector corresponds the index of the gene in genes vector and maps the index of the genes it includes to the number
-	//sources of that gene i.e. if a gene includes another gene 5 times it is still only one source of that gene.
 
 
 public:

@@ -206,10 +206,163 @@ void Chromosome::printGenes()
 	}
 }
 
+class xmat
+{
+public:
+	xmat(vector<string> g, string ine, int c, vector<int> inp, vector<int> indi)
+	{
+		gene_weights = g;
+		in_edge = ine;
+		count = c;
+		index = 0;
+		inputs = inp;
+		gene_indicies = indi;
+	};
+	vector<string> gene_weights;
+	vector<int> inputs;
+	vector<int> gene_indicies;
+	string in_edge;
+	int count;
+	int index;
+};
+
+class ymat
+{
+public:
+	ymat(vector<int> outp, vector<int> indi, vector<string> w)
+	{
+		index = 0;
+		outputs = outp;
+		gene_indicies = indi;
+	};
+	vector<int> outputs;//indicies of this matrix's output nodes
+	vector<int> gene_indicies;//the class and order of nodes in the matrix
+	vector<string> weights;//the output weight vector of the parent matrix
+	int index;//current iteration of the node
+};
+
 vector<vector<string>> Chromosome::build_matrix()
 {
 	vector<vector<string>> matrix;
-	return matrix;
+	list<mat> stack;
+	for (int y = 0; y < gene_codes.size(); y++)
+	{
+		for (int x = 0; x < gene_codes.size(); x++)
+		{
+			if (gene_indicies[x] != -1)//node is a submatrix
+			{
+				if (gene_weights[y][x] != "0")//edge leads into submatrix
+				{
+					int count = 0;
+					for (int i = 0; i < y; i++)//count how many edges have fed into the submatrix so far
+					{
+						if (gene_weights[i][x] != "0")
+							count++;
+					}
+					stack.push_front(mat(genes[gene_indicies[x]], gene_weights[y][x], genes[gene_indicies[x]].inputs[count]));
+					while (!stack.empty())
+					{
+						int end = stack.front().gene.gene_indicies.size();
+						while(stack.front().index < end)
+						{
+							if (stack.front().gene.gene_indicies[stack.front().index] != -1)//(sub)node is a (sub)submatrix  :P
+							{
+								if (stack.front().count == stack.front().index)//edge in from parent matrix
+								{
+									int count = 0;
+									for (int i = 0; i < stack.front().index; i++)//count how many edges have fed into the submatrix so far
+									{
+										if (stack.front().gene.gene_weights[i][stack.front().index] != "0")
+											count++;
+									}
+									stack.front().index++;
+									stack.push_front(mat(genes[stack.front().gene.gene_indicies[stack.front().index]], stack.front().in_edge, genes[stack.front().gene.gene_indicies[stack.front().index]].inputs[count]));//absolutely disgusting
+									break;
+								}
+								else// no edge leads into the (sub)submatrix from this (sub)node, expand but do not feed in
+								{
+									stack.front().index++;
+									stack.push_front(mat(genes[stack.front().gene.gene_indicies[stack.front().index]], "0", 0));
+									break;
+								}
+							}
+							else//(sub)node is not a (sub)submatrix
+							{
+								if (stack.front().count == stack.front().index)//edge in from parent matrix
+									row.push_back(stack.front().in_edge);
+								else
+									row.push_back("0");
+
+								row.push_back(stack.front().gene.gene_weights[y][stack.front().index]);
+
+								stack.front().index++;
+							}
+							
+						}
+					}
+				}
+				else//no edge leads into the submatrix from this node
+				{
+					stack.push_front(mat(genes[gene_indicies[x]], "0", 0));
+					while (!stack.empty())
+					{
+
+					}
+				}
+			}
+			else
+			{
+				row.push_back(gene_weights[y][x]);
+			}
+		}
+	}
+}
+
+vector<vector<string>> Chromosome::build_matrix()
+{
+	vector<vector<string>> matrix;
+	list<ymat> ystack;
+	vector<int> t;//temp
+	for (int i = 0; i < gene_indicies.size(); i++)
+	{
+		if (gene_indicies[i] == -1)//node is not a submatrix
+			ystack.push_back(ymat(t, t, gene_weights[i]));
+		else
+			ystack.push_back(ymat(genes[gene_indicies[i]].outputs, genes[gene_indicies[i]].gene_indicies, gene_weights[i]));
+	}
+	int yindex = 0;//y index of the node at the top of the stack in the compiled matrix
+	while (!ystack.empty())
+	{
+		while (ystack.front().index < ystack.front().gene_indicies.size())//iterate through each index on top of the stack
+		{
+			if (ystack.front().gene_indicies[ystack.front().index] != -1)//node is a submatrix, expand
+			{
+				int index = ystack.front().index;
+				ystack.front().index++;
+				//push the following data onto the top of the stack:
+				ystack.push_front(ymat(genes[ystack.front().gene_indicies[index]].outputs,//the node's output data, to connect the sub-nodes to the super-node
+					genes[ystack.front().gene_indicies[index]].gene_indicies,//the components of the node, to iterate through
+					ystack.front().weights));//the structure and value of this node's output, so that it can coordinate with the output data to connect the sub-nodes to the super-node
+			}
+			else//node is not a submatrix, populate row in compiled matrix
+			{
+				list<xmat> xstack;
+				for (int i = 0; i < gene_indicies.size(); i++)
+				{
+					if (gene_indicies[i] != -1)//node is a submatrix, expand
+					{
+						
+					}
+					else//node is not a submatrix
+					{
+
+					}
+				}
+				yindex++;
+			}
+		}
+		ystack.pop_front();//done iterating through element, pop it
+	}
 }
 
 void Chromosome::printCodes()
@@ -226,20 +379,31 @@ void Chromosome::validate_genes()
 	for (int i = 0; i < genes.size(); i++)
 	{
 		set<int> s;
-		for (auto node : genes[i].gene_nodes)
+		for (auto node : genes[i].gene_indicies)
 		{
-			int x = resolver.decode(node);
-			if(x != -1)
-				s.insert(x);
+			if(node != -1)
+				s.insert(node);
 		}
 		
 		contains.push_back(s);
 	}
 	contains = make_dag(contains);//prune edges to make graph a DAG
+	for (int i = 0; i < genes.size(); i++)
+	{
+		for (int j = 0; j < genes[i].gene_indicies.size(); j++)
+		{
+			if(genes[i].gene_indicies[j] != -1)//optimization
+				if (contains[i].count(genes[i].gene_indicies[j]) == 0)//include is not allowed, prune
+				{
+					genes[i].gene_indicies[j] = -1;
+					genes[i].gene_nodes[j] = "0";
+				}
+		}
+	}
 }
 
 
-class compare//used in make_dag() priority queue
+class compare//used in make_dag() list for sorting
 {
 public:
 	bool operator() (pair<int, set<int>>& left, pair<int, set<int>>& right)
@@ -251,85 +415,62 @@ public:
 
 vector<set<int>> Chromosome::make_dag(vector<set<int>> graph)
 {
-	gene_includes.clear();
-	vector<bool> complete;//indicies submatricies have been completely resolved if bool == true
-	for (int i = 0; i < graph.size(); i++)
+	list<pair<int, set<int>>> l;
+	int i = 0;
+	for (auto x : graph)
+		l.push_front(make_pair(i++, x));
+	l.sort(compare());
+	set<int> acyclic;//nodes that can be legally contained by other nodes
+	pair<int, set<int>> cur = l.front();
+	while (cur.second.size() == 0)//add all genes which include no other genes to the acyclic set
 	{
-		vector<int> temp;
-		temp.reserve(graph.size());
-		gene_includes.push_back(temp);
-		complete.push_back(false);
+		acyclic.insert(cur.first);
+		l.pop_front();
+
+		cur = l.front();
 	}
-	priority_queue<pair<int, set<int>>, vector<pair<int, set<int>>>, compare> pq;
-
-
-	for (int i = 0; i < graph.size(); i++)
+	while (l.size() != 0)
 	{
-		pq.push(make_pair(i, graph[i]));
-		vector<int> m;
-		for (auto source : graph[i])
+		int smallest_diff = INT_MAX;
+		vector<int> small;
+		list<pair<int, set<int>>>::iterator small_it;
+		int c = 0;
+		int m = l.size();
+		auto i = l.begin();
+		while (c < m)//iterate through list. A lot of dp optimization is possible here but I am lazy and n should not be that big
 		{
-			m.push_back(0);
-		}
-		gene_includes[i] = m;
-	}
-	vector<bool> included;
-	for (int i = 0; i < graph.size(); i++)
-		included.push_back(false);
-	pair<int, set<int>> vertex = pq.top();
-	pq.pop();
-	vertex.second.clear();//at least one vertex must be empty so we use the vertex with the fewest edges
-	pq.push(vertex);
-	while (!pq.empty())
-	{
-		for (int i = 0; i < graph.size(); i++)
-			included[i] = false;
-		vertex = pq.top();
-		pq.pop();
-		included[vertex.first] = true;
-		if (vertex.second.size() == 0)
-		{
-			complete[vertex.first] = true;
-			continue;
-		}
+			vector<int> diff;
 
-		bool comp = true;
-		
-		for (set<int>::iterator i = vertex.second.begin(); i != vertex.second.end(); i++)
-		{
-			int edge = *i;
-			if (complete[edge])//the outgoing edge has already been completely expanded and is free of cycles
+			set_difference(i->second.begin(), i->second.end(), acyclic.begin(), acyclic.end(), inserter(diff, diff.begin()));
+			if (diff.size() == 0)//legal node found
 			{
-				for (auto it : graph[edge])
-				{
-					included[it] = true;
-					gene_includes[vertex.first][it]++;
-				}
+				acyclic.insert(i->first);
+				auto temp = i;
+				++temp;
+				l.erase(i);
+				i = temp;
+				smallest_diff = -1;
+				m--;
 			}
-			else if (included[edge])//cycle detected, matrix includes itself
+			else if (smallest_diff > diff.size())//new smallest size found
 			{
-				comp = false;
-				vertex.second.erase(edge);
+				smallest_diff = diff.size();
+				small = diff;
+				small_it = i;
 			}
-			else//no cycle detected and the outgoing edge has not been expanded yet
-			{
-				comp = false;
-				vertex.second.insert(edge);
-			}
-			included[edge] = true;
+			c++;
+			if(i != l.end())
+				i++;
 		}
-		if (comp)//if comp is true then all outgoing edges from the vertex are complete, therefore this vertex is complete
+		if (smallest_diff != -1)//cycle detected
 		{
-			complete[vertex.first] = true;
-			graph[vertex.first].clear();
-			for (int e = 0; e < gene_includes[vertex.first].size(); e++)
+			for (auto s : small)
 			{
-				if (gene_includes[vertex.first][e] > 0)
-					graph[vertex.first].insert(e);
+				graph[small_it->first].erase(s);
 			}
+			acyclic.insert(small_it->first);
+			l.erase(small_it);
 		}
-		else
-			pq.push(vertex);
 	}
 	return graph;
 }
@@ -341,5 +482,12 @@ void Chromosome::resolve_genes()
 	{
 		int x = resolver.decode(gene_codes[i]);
 		gene_indicies.push_back(x);
+	}
+	for (int i = 0; i < genes.size(); i++)
+	{
+		for (int j = 0; j < genes[i].gene_nodes.size(); j++)
+		{
+			genes[i].gene_indicies.push_back(resolver.decode(genes[i].gene_nodes[j]));
+		}
 	}
 }

@@ -22,6 +22,7 @@ public:
 	//index of the node in gene_nodes
 
 	vector<vector<string>> gene_weights;//genetic code stored as an nxn adjacency matrix
+	vector<int> gene_indicies;//vector of indicies (in parent vector) which codes correspond to
 	vector<string> gene_nodes;//vector of codes corresponding to genes in the genes vector
 	float structure_mutation_rate;//mutation rate of the gene structure
 	vector<float> nodes_code_mutation_rate;//mutation rate of the gene_nodes strings
