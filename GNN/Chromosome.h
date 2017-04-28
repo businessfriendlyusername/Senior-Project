@@ -22,7 +22,6 @@ private:
 	vector<vector<string>> gene_weights;//genetic code stored as an nxn adjacency matrix
 	vector<string> gene_codes;//vector of codes corresponding to genes in the genes vector
 	vector<int> gene_indicies;//vector of indicies which codes correspond to
-	
 	void resolve_genes();//resolves genes to gene_indicies
 	
 	Gene_tree resolver;//resolves gene codes to their indicies in the gene vector
@@ -57,3 +56,4 @@ public:
 	//void printthreshold();//prints the thresholds of the neurons
 	//void print_inputs();//prints info about all inputs
 };
+

@@ -209,126 +209,132 @@ void Chromosome::printGenes()
 class xmat
 {
 public:
-	xmat(vector<string> g, string ine, int c, vector<int> inp, vector<int> indi)
+	xmat(string ine, int inp, int gin)
 	{
-		gene_weights = g;
 		in_edge = ine;
-		count = c;
 		index = 0;
-		inputs = inp;
-		gene_indicies = indi;
+		input = inp;
+		gindex = gin;
 	};
-	vector<string> gene_weights;
-	vector<int> inputs;
-	vector<int> gene_indicies;
-	string in_edge;
-	int count;
-	int index;
+	int input;//the number of edges in counted so far
+	int gindex;//index of gene being expanded in genes member variable
+	string in_edge;//the value of the incoming edge if there is one
+	int index;//the index of the current iteration
 };
 
 class ymat
 {
 public:
-	ymat(vector<int> outp, vector<int> indi, vector<string> w)
+	ymat(int gin, vector<string> pw, int b, int supb)
 	{
 		index = 0;
-		outputs = outp;
-		gene_indicies = indi;
+		super_begin = supb;
+		gindex = gin;
+		parent_weights = pw;
+		begin = b;
 	};
-	vector<int> outputs;//indicies of this matrix's output nodes
-	vector<int> gene_indicies;//the class and order of nodes in the matrix
-	vector<string> weights;//the output weight vector of the parent matrix
+	int gindex;//the index of this gene in the genes member variable
+	vector<string> parent_weights;//the output weight vector of the parent node
 	int index;//current iteration of the node
+	int begin;//the starting index of the matrix relative to the compiled matrix
+	int super_begin;//the starting index of the super-matrix relative to the compiled matrix
 };
-
-vector<vector<string>> Chromosome::build_matrix()
-{
-	vector<vector<string>> matrix;
-	list<mat> stack;
-	for (int y = 0; y < gene_codes.size(); y++)
-	{
-		for (int x = 0; x < gene_codes.size(); x++)
-		{
-			if (gene_indicies[x] != -1)//node is a submatrix
-			{
-				if (gene_weights[y][x] != "0")//edge leads into submatrix
-				{
-					int count = 0;
-					for (int i = 0; i < y; i++)//count how many edges have fed into the submatrix so far
-					{
-						if (gene_weights[i][x] != "0")
-							count++;
-					}
-					stack.push_front(mat(genes[gene_indicies[x]], gene_weights[y][x], genes[gene_indicies[x]].inputs[count]));
-					while (!stack.empty())
-					{
-						int end = stack.front().gene.gene_indicies.size();
-						while(stack.front().index < end)
-						{
-							if (stack.front().gene.gene_indicies[stack.front().index] != -1)//(sub)node is a (sub)submatrix  :P
-							{
-								if (stack.front().count == stack.front().index)//edge in from parent matrix
-								{
-									int count = 0;
-									for (int i = 0; i < stack.front().index; i++)//count how many edges have fed into the submatrix so far
-									{
-										if (stack.front().gene.gene_weights[i][stack.front().index] != "0")
-											count++;
-									}
-									stack.front().index++;
-									stack.push_front(mat(genes[stack.front().gene.gene_indicies[stack.front().index]], stack.front().in_edge, genes[stack.front().gene.gene_indicies[stack.front().index]].inputs[count]));//absolutely disgusting
-									break;
-								}
-								else// no edge leads into the (sub)submatrix from this (sub)node, expand but do not feed in
-								{
-									stack.front().index++;
-									stack.push_front(mat(genes[stack.front().gene.gene_indicies[stack.front().index]], "0", 0));
-									break;
-								}
-							}
-							else//(sub)node is not a (sub)submatrix
-							{
-								if (stack.front().count == stack.front().index)//edge in from parent matrix
-									row.push_back(stack.front().in_edge);
-								else
-									row.push_back("0");
-
-								row.push_back(stack.front().gene.gene_weights[y][stack.front().index]);
-
-								stack.front().index++;
-							}
-							
-						}
-					}
-				}
-				else//no edge leads into the submatrix from this node
-				{
-					stack.push_front(mat(genes[gene_indicies[x]], "0", 0));
-					while (!stack.empty())
-					{
-
-					}
-				}
-			}
-			else
-			{
-				row.push_back(gene_weights[y][x]);
-			}
-		}
-	}
-}
 
 vector<vector<string>> Chromosome::build_matrix()
 {
 	vector<vector<string>> matrix;
 	list<ymat> ystack;
 	vector<int> t;//temp
-	for (int i = 0; i < gene_indicies.size(); i++)
+	for (int y = 0; y < gene_indicies.size(); y++)
 	{
-		if (gene_indicies[i] == -1)//node is not a submatrix
-			ystack.push_back(ymat(t, t, gene_weights[i]));
-		else
-			ystack.push_back(ymat(genes[gene_indicies[i]].outputs, genes[gene_indicies[i]].gene_indicies, gene_weights[i]));
+		if (gene_indicies[y] == -1)//y node is not a submatrix
+		{
+			vector<string> row;
+			list<xmat> xstack;
+			for (int x = 0; x < gene_indicies.size(); x++)
+			{
+				if (gene_indicies[x] == -1)//x node is not a submatrix
+				{
+					row.push_back(gene_weights[y][x]);
+				}
+				else//x node is a submatrix, expand
+				{
+					int incount = 0;
+					for (int i = 0; i <= y; i++)//count number of edges that have fed into the node
+					{
+						if (gene_weights[i][x] != "0")
+							incount++;
+					}
+					xstack.push_back(xmat(gene_weights[y][x], incount, gene_indicies[x]));
+					while (!xstack.empty())//fully expand node and continue
+					{
+
+					}
+				}
+			}
+		}
+		else//node is a submatrix
+		{
+			ystack.push_back(ymat(gene_indicies[y], gene_weights[y], y, 0));
+			while (!ystack.empty())//full expand node and continue
+			{
+				ymat ytop = ystack.front();
+				Gene tgene = genes[ystack.front().gindex];
+				while (ytop.index < tgene.gene_indicies.size())//iterate through node on top of the stack
+				{
+					if (tgene.gene_indicies[ytop.index] == -1)//y node is not a submatrix, populate row
+					{
+						vector<string> row;
+						list<xmat> xstack;
+						int outcount = 0;
+						for (int i = 0; i < gene_indicies.size(); i++)
+						{
+							if (gene_indicies[i] == -1)//x node is not a submatrix, insert
+							{
+								if (row.size() < ytop.super_begin)//the row has not reached the ynode's parent expansion in the compiled matrix, it can have no connections
+								{
+									row.push_back("0");
+								}
+								else if (row.size() < ytop.begin)//the row has reached it's parent's expansion, but it has not reached its own expansion in the x direction yet, check for outputs
+								{
+									if (ytop.parent_weights[row.size() - ytop.super_begin] != "0")//outgoing edge detected
+									{
+										if (tgene.outputs[outcount] == ytop.index)//parent's outgoing edge comes from this subnode
+										{
+											row.push_back(ytop.parent_weights[row.size() - ytop.begin]);
+										}
+										else//outgoing edge comes from another subnode
+											row.push_back("0");
+										outcount++;
+									}
+								}
+								else if (row.size() - ytop.begin < tgene.gene_indicies.size())//the row has reached its own expansion, interconnect
+								{
+									row.push_back(tgene.gene_weights[]);
+								}
+							}
+							else//x node is a submatrix, expand
+							{
+								int incount = 0;
+								if(gene_weights[y])
+								for (int z = 0; z < matrix.size(); z++)
+								{
+									if (matrix[z][row.size()] != "0")//count how many edges have fed into the node being expanded
+										incount++;
+								}
+								
+							}
+
+
+						}
+					}
+					else//ynode is a submatrix, expand
+					{
+
+					}
+				}
+			}
+		}
 	}
 	int yindex = 0;//y index of the node at the top of the stack in the compiled matrix
 	while (!ystack.empty())
@@ -342,20 +348,98 @@ vector<vector<string>> Chromosome::build_matrix()
 				//push the following data onto the top of the stack:
 				ystack.push_front(ymat(genes[ystack.front().gene_indicies[index]].outputs,//the node's output data, to connect the sub-nodes to the super-node
 					genes[ystack.front().gene_indicies[index]].gene_indicies,//the components of the node, to iterate through
-					ystack.front().weights));//the structure and value of this node's output, so that it can coordinate with the output data to connect the sub-nodes to the super-node
+					ystack.front().weights,//the structure and value of this node's output, so that it can coordinate with the output data to connect the sub-nodes to the super-node
+					yindex,//the starting index of the expansion of this gene in its expanded parent matrix, so it knows where to interconnect itself
+					ystack.front().master_y));//the location of this gene in the master matrix, to start populating its output row
 			}
 			else//node is not a submatrix, populate row in compiled matrix
 			{
 				list<xmat> xstack;
+				vector<string> row;
+				int incount = 0;
 				for (int i = 0; i < gene_indicies.size(); i++)
 				{
-					if (gene_indicies[i] != -1)//node is a submatrix, expand
+					if (gene_indicies[i] == -1)//node is not a submatrix, populate index[row][i]
 					{
-						
+						if (gene_weights[ystack.front][i] != "0")//check if this y subnode corrosponds to this x output
+						{
+							if (ystack.front().outputs[incount] == ystack.front().index)//node corrosponds to output
+							{
+								row.push_back(gene_weights[ystack.front().master_y][i]);
+							}
+							else//incorrect output, push 0
+							{
+								row.push_back("0");
+							}
+						}
+						else
+							row.push_back("0");
 					}
-					else//node is not a submatrix
+					else//node is a submatrix, expand
 					{
-
+						if (gene_weights[ystack.front().master_y][i] == "0")//no edge feeds in from master matrix, the expansion of this gene will be all 0's for this row
+						{
+							xstack.push_back(xmat("0", 0, genes[gene_indicies[i]].gene_indicies, gene_indicies[i]));
+							while (!xstack.empty())
+							{
+								while (xstack.front().index < xstack.front().gene_indicies.size())
+								{
+									if (xstack.front().gene_indicies[xstack.front().index] != -1)
+									{
+										int index = xstack.front().index;
+										xstack.front().index++;
+										xstack.push_front(xmat("0", 0, genes[xstack.front().gene_indicies[index]].gene_indicies, gene_indicies[i]));
+									}
+									else
+									{
+										row.push_back("0");
+										xstack.front().index++;
+									}
+								}
+								xstack.pop_front();
+							}
+						}
+						else//edge feeds in from master matrix, count how many edges have fed into compiled matrix, and remember the value of the edge in
+						{
+							int xindex = row.size();
+							int c = 1;
+							for (int z = 0; z < matrix.size(); z++)
+							{
+								if (matrix[z][xindex] != "0")
+									c++;
+							}
+							xstack.push_front(xmat(gene_weights[ystack.front().master_y][i], c, genes[gene_indicies[i]].gene_indicies, gene_indicies[i]));
+							while (!xstack.empty())
+							{
+								while (xstack.front().index < xstack.front().gene_indicies.size())
+								{
+									if (xstack.front().gene_indicies[xstack.front().index] != -1)//node is a submatrix, expand
+									{
+										int index = xstack.front().index;
+										xstack.front().index++;
+										int in_index = genes[xstack.front().gindex].inputs[xstack.front().input];
+										
+										if (in_index == index)//input from parent matrix feeds into submatrix
+										{
+											int xindex = row.size();
+											int c = 1;
+											for (int z = 0; z < matrix.size(); z++)
+												if (matrix[z][xindex] != "0")
+													c++;
+											xstack.push_front(xmat(xstack.front().in_edge, c, genes[xstack.front().gene_indicies[index]].gene_indicies, xstack.front().gene_indicies[xstack.front().index]));
+										}
+										else
+										{
+											xstack.push_front(xmat("0", 0, genes[xstack.front().gene_indicies[index]].gene_indicies, xstack.front().gene_indicies[xstack.front().index]));
+										}
+									}
+									else//node is not a submatrix, populate index
+									{
+										
+									}
+								}
+							}
+						}
 					}
 				}
 				yindex++;
