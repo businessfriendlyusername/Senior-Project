@@ -23,7 +23,6 @@ private:
 	vector<string> gene_codes;//vector of codes corresponding to genes in the genes vector
 	vector<int> gene_indicies;//vector of indicies which codes correspond to
 	void resolve_genes();//resolves genes to gene_indicies
-	
 	Gene_tree resolver;//resolves gene codes to their indicies in the gene vector
 	vector<set<int>> make_dag(vector<set<int>>);//used by validate_genes
 

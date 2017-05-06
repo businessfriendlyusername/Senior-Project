@@ -29,7 +29,6 @@ public:
 
 	static string chr_remove(string, char);//removes all instances of char from a string
 
-
 	static string chr_replace(string, char remove, char replace);//replaces all instances of remove with replace in string
 
 	//you still need to seed the random number generator using srand() before using this function
