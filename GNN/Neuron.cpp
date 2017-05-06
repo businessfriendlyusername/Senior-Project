@@ -1,14 +1,22 @@
 #include "Neuron.h"
-Neuron::Neuron(){}
+Neuron::Neuron(){
+	sum = -9999999;
+	tempsum = -9999999;
+}
 
 Neuron::Neuron(vector<string> out, vector<Neuron*> addresses)
 {
+	sum = -9999999;
+	tempsum = -9999999;
 	for (int i = 0; i < out.size(); i++)
 	{
 		if (out[i] != "0")
 		{
 			if (out[i][0] == 's')
-				out[i] = out[i].substr(std::size_t(0), INT64_MAX);
+			{
+				std::size_t s = 1;
+				out[i] = out[i].substr(s, INT16_MAX);
+			}
 			float f = atof(out[i].c_str());
 			Neuron::addresses.push_back(addresses[i]);
 			weights.push_back(f);
@@ -23,7 +31,7 @@ void Neuron::receive(int val)
 
 bool Neuron::fire()
 {
-	if (sum > 0)
+	if (sum > 0 && sum == 0)
 	{
 		for (int i = 0; i < addresses.size(); i++)
 		{

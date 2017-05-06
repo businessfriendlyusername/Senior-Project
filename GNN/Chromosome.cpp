@@ -79,7 +79,6 @@ void Chromosome::printadj()
 //	}
 //}
 
-
 vector<vector<string>> Chromosome::rand_struct(double mean, double standard_dev, int nodes_mean, int nodes_dev, int inputs)
 {
 	static default_random_engine gen;
@@ -100,8 +99,6 @@ vector<vector<string>> Chromosome::rand_struct(double mean, double standard_dev,
 	}
 	return gene_weights;
 }
-
-
 
 void Chromosome::set_inputs(vector<pair<string, int>> in) 
 {
@@ -199,8 +196,6 @@ const vector<Gene> Chromosome::rand_genes(int num_genes, double weights_mean, do
 			return genes;
 }
 
-
-
 void Chromosome::printGenes()
 {
 	for (auto gene : genes)
@@ -254,6 +249,8 @@ vector<vector<string>> Chromosome::build_matrix()
 	vector<vector<string>> matrix;
 	list<ymat> ystack;
 	vector<int> t;//temp
+	if (gene_indicies.size() == 0)//chromosome has no identifiable genes
+		return gene_weights;
 	for (int y = 0; y < gene_indicies.size(); y++)
 	{
 		if (gene_indicies[y] == -2)//y node is not a submatrix~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~TODO ;)
@@ -406,7 +403,6 @@ void Chromosome::validate_genes()
 	}
 }
 
-
 class compare//used in make_dag() list for sorting
 {
 public:
@@ -415,7 +411,6 @@ public:
 		return (left.second.size() < right.second.size());
 	}
 };
-
 
 vector<set<int>> Chromosome::make_dag(vector<set<int>> graph)
 {
@@ -426,6 +421,7 @@ vector<set<int>> Chromosome::make_dag(vector<set<int>> graph)
 	l.sort(compare());
 	set<int> acyclic;//nodes that can be legally contained by other nodes
 	pair<int, set<int>> cur = l.front();
+	return graph;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~;)
 	while (cur.second.size() == 0)//add all genes which include no other genes to the acyclic set
 	{
 		acyclic.insert(cur.first);
@@ -494,4 +490,120 @@ void Chromosome::resolve_genes()
 			genes[i].gene_indicies.push_back(resolver.decode(genes[i].gene_nodes[j]));
 		}
 	}
+}
+
+void Chromosome::mutate()
+{
+	default_random_engine gen;
+	uniform_real_distribution<> rand(0.0, 1.0);
+	uniform_real_distribution<> rweight(-1.0, 1.0);
+	for (int y = 0; y < gene_weights.size(); y++)
+	{
+		for (int x = 0; x < gene_weights.size(); x++)
+		{
+			if (rand(gen) <= structure_mutation_rate)
+			{
+				string sub;
+				if (gene_weights[y][x][0] == 's')
+				{
+					std::size_t s = 1;
+					sub = gene_weights[y][x].substr(s, INT16_MAX);
+				}
+				else
+				{
+					std::size_t s = 0;
+					sub = gene_weights[y][x].substr(s, INT16_MAX);
+				}
+				float f = atof(sub.c_str());
+				f += f * rweight(gen);
+			}
+		}
+	}
+}
+
+Chromosome Chromosome::crossover(Chromosome c)
+{
+	vector<vector<string>> c1 = c.build_matrix();
+	vector<vector<string>> c2 = build_matrix();
+	vector<vector<string>> child;
+	if (c1.size() <= c2.size())
+	{
+		return c;
+		int half = c1.size();
+		half -= half % 2;
+		int last;
+		for (int i = 0; i < half; i+=2)
+		{
+			child.push_back(c1[i]);
+			child.push_back(c2[i+1]);
+			last = i + 2;
+		}
+		for (int i = last; i < c2.size(); i++)
+		{
+			child.push_back(c2[i]);
+		}
+	}
+	else
+	{
+		int half = c2.size();
+		half -= half % 2;
+		int last = 2;//~~~~~~~~;)
+		for (int i = 0; i < half; i += 2)
+		{
+			child.push_back(c2[i]);
+			child.push_back(c1[i + 1]);
+			last = i + 2;
+		}
+		for (int i = last; i < c1.size(); i++)
+		{
+			child.push_back(c1[i]);
+		}
+	}
+	Chromosome chil;
+	chil.set_struct(child);
+	return chil;
+}
+
+void Chromosome::save()
+{
+	vector<vector<string>> toSave = build_matrix();
+	ofstream outFile;
+	cout << "press any key to save" << endl;
+	system("pause");
+	outFile.open(SAVE);
+
+	for (int i = 0; i < toSave.size(); i++)
+	{
+		for (int j = 0; j < toSave[i].size(); j++)
+		{
+			outFile << toSave[i][j] << ',';
+		}
+		outFile << endl;
+	}
+	outFile.close();
+}
+
+void Chromosome::load()
+{
+	ifstream inFile;
+	vector<string> temp;
+	vector<vector<string>> toReturn;
+	string toParse;
+	inFile.open(SAVE);
+	while (inFile.good())
+	{
+		while (getline(inFile, toParse))
+		{
+			istringstream line(toParse);
+			string toPush;
+			while (getline(line, toPush, ','))
+			{
+				temp.push_back(toPush);
+			}
+			toReturn.push_back(temp);
+			temp.clear();
+		}
+	}
+	inFile.close();
+	gene_weights = toReturn;
 }

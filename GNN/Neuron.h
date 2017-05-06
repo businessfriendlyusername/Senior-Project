@@ -7,8 +7,8 @@ using namespace std;
 class Neuron
 {
 private:
-	float sum = 0;
-	float tempsum = 0;
+	float sum;
+	float tempsum;
 	vector<Neuron*> addresses;
 	vector<float> weights;
 public:
